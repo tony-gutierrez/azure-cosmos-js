@@ -7,7 +7,7 @@ import {
   parsePath,
   ResourceType
 } from "../../common";
-import { PartitionKeyDefinition } from "../../documents";
+import { PartitionKeyDefinition, PartitionKeyDefinitionResponse } from "../../documents";
 import { PartitionKey } from "../../index";
 import { QueryIterator } from "../../queryIterator";
 import { FeedOptions, RequestOptions, ResourceResponse } from "../../request";
@@ -122,16 +122,16 @@ export class Container {
   ) {}
 
   /**
-   * Used to read, replace, or delete a specific, existing {@link Item} by id.
+   * Used to read, replace, or delete a specific, existing {@link Item} by id and partition key.
    *
    * Use `.items` for creating new items, or querying/reading all items.
    *
    * @param id The id of the {@link Item}.
-   * @param partitionKey The partition key of the {@link Item}. (Required for partitioned containers).
+   * @param partitionKey The partition key of the {@link Item}.
    * @example Replace an item
    * const {body: replacedItem} = await container.item("<item id>").replace({id: "<item id>", title: "Updated post", authorID: 5});
    */
-  public item(id: string, partitionKey?: string): Item {
+  public item(id: string, partitionKey: any): Item {
     return new Item(this, id, partitionKey, this.clientContext);
   }
 
@@ -234,11 +234,13 @@ export class Container {
    * @param {function} callback       - \
    * The arguments to the callback are(in order): error, partitionKeyDefinition, response object and response headers
    */
-  public async getPartitionKeyDefinition(): Promise<ResourceResponse<PartitionKeyDefinition>> {
+  public async getPartitionKeyDefinition(): Promise<
+    ResourceResponse<PartitionKeyDefinition & PartitionKeyDefinitionResponse>
+  > {
     // $ISSUE-felixfan-2016-03-17: Make name based path and link based path use the same key
     // $ISSUE-felixfan-2016-03-17: Refresh partitionKeyDefinitionCache when necessary
     if (this.url in this.clientContext.partitionKeyDefinitionCache) {
-      return new ResourceResponse<PartitionKeyDefinition>(
+      return new ResourceResponse<PartitionKeyDefinition & PartitionKeyDefinitionResponse>(
         this.clientContext.partitionKeyDefinitionCache[this.url],
         {},
         0
@@ -246,7 +248,7 @@ export class Container {
     }
 
     const { headers, statusCode } = await this.read();
-    return new ResourceResponse<PartitionKeyDefinition>(
+    return new ResourceResponse<PartitionKeyDefinition & PartitionKeyDefinitionResponse>(
       this.clientContext.partitionKeyDefinitionCache[this.url],
       headers,
       statusCode

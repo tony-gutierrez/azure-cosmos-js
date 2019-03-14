@@ -28,7 +28,7 @@ export interface FeedOptions {
   /** Max number of items to be returned in the enumeration operation. */
   maxItemCount?: number;
   /** Specifies a partition key definition for a particular path in the Azure Cosmos DB database service. */
-  partitionKey?: string;
+  partitionKey?: any;
   /** Token for use with Session consistency. */
   sessionToken?: string;
   /** (Advanced use case) Initial headers to start with when sending requests to Cosmos */

@@ -45,7 +45,8 @@ export class ClientContext {
     type: ResourceType,
     id: string,
     initialHeaders: CosmosHeaders,
-    options?: RequestOptions
+    options?: RequestOptions,
+    isSystemKey?: () => Promise<boolean>
   ): Promise<Response<T & Resource>> {
     try {
       const requestHeaders = await getHeaders(
@@ -56,6 +57,7 @@ export class ClientContext {
         id,
         type,
         options,
+        isSystemKey,
         undefined,
         this.cosmosClientOptions.connectionPolicy.useMultipleWriteLocations
       );
@@ -86,7 +88,8 @@ export class ClientContext {
     resultFn: (result: { [key: string]: any }) => any[], // TODO: any
     query: SqlQuerySpec | string,
     options: FeedOptions,
-    partitionKeyRangeId?: string
+    partitionKeyRangeId?: string,
+    isSystemKey?: () => Promise<boolean>
   ): Promise<Response<T & Resource>> {
     // Query operations will use ReadEndpoint even though it uses
     // GET(for queryFeed) and POST(for regular query operations)
@@ -111,6 +114,7 @@ export class ClientContext {
         id,
         type,
         options,
+        isSystemKey,
         partitionKeyRangeId,
         this.cosmosClientOptions.connectionPolicy.useMultipleWriteLocations
       );
@@ -143,6 +147,7 @@ export class ClientContext {
         id,
         type,
         options,
+        isSystemKey,
         partitionKeyRangeId,
         this.cosmosClientOptions.connectionPolicy.useMultipleWriteLocations
       );
@@ -169,7 +174,8 @@ export class ClientContext {
     type: ResourceType,
     id: string,
     initialHeaders: CosmosHeaders,
-    options?: RequestOptions
+    options?: RequestOptions,
+    isSystemKey?: () => Promise<boolean>
   ): Promise<Response<T & Resource>> {
     try {
       const reqHeaders = await getHeaders(
@@ -180,6 +186,7 @@ export class ClientContext {
         id,
         type,
         options,
+        isSystemKey,
         undefined,
         this.cosmosClientOptions.connectionPolicy.useMultipleWriteLocations
       );
@@ -214,7 +221,8 @@ export class ClientContext {
     type: ResourceType,
     id: string,
     initialHeaders: CosmosHeaders,
-    options?: RequestOptions
+    options?: RequestOptions,
+    isSystemKey?: () => Promise<boolean>
   ): Promise<Response<T & Resource>>;
 
   // But a few cases, like permissions, there is additional junk added to the response that isn't in system resource props
@@ -224,7 +232,8 @@ export class ClientContext {
     type: ResourceType,
     id: string,
     initialHeaders: CosmosHeaders,
-    options?: RequestOptions
+    options?: RequestOptions,
+    isSystemKey?: () => Promise<boolean>
   ): Promise<Response<T & U & Resource>>;
   public async create<T, U>(
     body: T,
@@ -232,7 +241,8 @@ export class ClientContext {
     type: ResourceType,
     id: string,
     initialHeaders: CosmosHeaders,
-    options?: RequestOptions
+    options?: RequestOptions,
+    isSystemKey?: () => Promise<boolean>
   ): Promise<Response<T & U & Resource>> {
     try {
       const requestHeaders = await getHeaders(
@@ -243,6 +253,7 @@ export class ClientContext {
         id,
         type,
         options,
+        isSystemKey,
         undefined,
         this.cosmosClientOptions.connectionPolicy.useMultipleWriteLocations
       );
@@ -310,7 +321,8 @@ export class ClientContext {
     type: ResourceType,
     id: string,
     initialHeaders: CosmosHeaders,
-    options?: RequestOptions
+    options?: RequestOptions,
+    isSystemKey?: () => Promise<boolean>
   ): Promise<Response<T & Resource>> {
     try {
       const reqHeaders = await getHeaders(
@@ -321,6 +333,7 @@ export class ClientContext {
         id,
         type,
         options,
+        isSystemKey,
         undefined,
         this.cosmosClientOptions.connectionPolicy.useMultipleWriteLocations
       );
@@ -351,7 +364,8 @@ export class ClientContext {
     type: ResourceType,
     id: string,
     initialHeaders: CosmosHeaders,
-    options?: RequestOptions
+    options?: RequestOptions,
+    isSystemKey?: () => Promise<boolean>
   ): Promise<Response<T & Resource>>;
   public async upsert<T, U>(
     body: T,
@@ -359,7 +373,8 @@ export class ClientContext {
     type: ResourceType,
     id: string,
     initialHeaders: CosmosHeaders,
-    options?: RequestOptions
+    options?: RequestOptions,
+    isSystemKey?: () => Promise<boolean>
   ): Promise<Response<T & U & Resource>>;
   public async upsert<T>(
     body: T,
@@ -367,7 +382,8 @@ export class ClientContext {
     type: ResourceType,
     id: string,
     initialHeaders: CosmosHeaders,
-    options?: RequestOptions
+    options?: RequestOptions,
+    isSystemKey?: () => Promise<boolean>
   ): Promise<Response<T & Resource>> {
     try {
       const requestHeaders = await getHeaders(
@@ -378,6 +394,7 @@ export class ClientContext {
         id,
         type,
         options,
+        isSystemKey,
         undefined,
         this.cosmosClientOptions.connectionPolicy.useMultipleWriteLocations
       );
@@ -406,7 +423,8 @@ export class ClientContext {
   public async execute<T>(
     sprocLink: string,
     params?: any[], // TODO: any
-    options?: RequestOptions
+    options?: RequestOptions,
+    isSystemKey?: () => Promise<boolean>
   ): Promise<Response<T>> {
     const initialHeaders = { ...this.cosmosClientOptions.defaultHeaders, ...(options && options.initialHeaders) };
 
@@ -426,6 +444,7 @@ export class ClientContext {
       id,
       ResourceType.sproc,
       options,
+      isSystemKey,
       undefined,
       this.cosmosClientOptions.connectionPolicy.useMultipleWriteLocations
     );
@@ -458,6 +477,7 @@ export class ClientContext {
       "",
       ResourceType.none,
       {},
+      undefined,
       undefined,
       this.cosmosClientOptions.connectionPolicy.useMultipleWriteLocations
     );

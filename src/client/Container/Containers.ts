@@ -1,5 +1,6 @@
 import { ClientContext } from "../../ClientContext";
 import { Constants, getIdFromLink, getPathFromLink, isResourceValid, ResourceType, StatusCodes } from "../../common";
+import { DEFAULT_PARTITION_KEY_PATH } from "../../common/partitionKeyConstants";
 import { CosmosHeaders, mergeHeaders, SqlQuerySpec } from "../../queryExecutionContext";
 import { QueryIterator } from "../../queryIterator";
 import { FeedOptions, RequestOptions } from "../../request";
@@ -98,6 +99,14 @@ export class Containers {
     const path = getPathFromLink(this.database.url, ResourceType.container);
     const id = getIdFromLink(this.database.url);
     let initialHeaders: CosmosHeaders;
+
+    // If they don't specify a partition key, use the default path
+    if (!body.partitionKey || !body.partitionKey.paths) {
+      body.partitionKey = {
+        kind: "Hash",
+        paths: [DEFAULT_PARTITION_KEY_PATH]
+      };
+    }
 
     if (body.throughput) {
       initialHeaders = { [Constants.HttpHeaders.OfferThroughput]: body.throughput };

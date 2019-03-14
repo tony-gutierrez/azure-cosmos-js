@@ -1,6 +1,7 @@
 import assert from "assert";
 import { Container, PartitionKind } from "../..";
 import { ItemDefinition } from "../../client";
+import { UNDEFINED_PARTITION_KEY } from "../../common/partitionKeyConstants";
 import {
   bulkDeleteItems,
   bulkInsertItems,
@@ -86,14 +87,16 @@ describe("NodeJS CRUD Tests", function() {
       assert.equal(replacedDocument.foo, "not bar", "property should have changed");
       assert.equal(document.id, replacedDocument.id, "document id should stay the same");
       // read document
-      const { resource: document2 } = await container.item(replacedDocument.id).read<TestItem>();
+      const { resource: document2 } = await container
+        .item(replacedDocument.id, UNDEFINED_PARTITION_KEY)
+        .read<TestItem>();
       assert.equal(replacedDocument.id, document2.id);
       // delete document
-      const { resource: res } = await container.item(replacedDocument.id).delete();
+      const { resource: res } = await container.item(replacedDocument.id, UNDEFINED_PARTITION_KEY).delete();
 
       // read documents after deletion
       try {
-        const { resource: document3 } = await container.item(replacedDocument.id).read();
+        const { resource: document3 } = await container.item(replacedDocument.id, UNDEFINED_PARTITION_KEY).read();
         assert.fail("must throw if document doesn't exist");
       } catch (err) {
         const notFoundErrorCode = 404;
@@ -152,7 +155,7 @@ describe("NodeJS CRUD Tests", function() {
       returnedDocuments.forEach(function(document) {
         ++document.prop;
       });
-      const newReturnedDocuments = await bulkReplaceItems(container, returnedDocuments);
+      const newReturnedDocuments = await bulkReplaceItems(container, returnedDocuments, UNDEFINED_PARTITION_KEY);
       returnedDocuments = newReturnedDocuments;
       await bulkQueryItemsWithPartitionKey(container, returnedDocuments, partitionKey);
       const querySpec = {

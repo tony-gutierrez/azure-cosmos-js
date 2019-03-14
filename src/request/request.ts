@@ -1,5 +1,10 @@
 import { AuthOptions, setAuthorizationHeader } from "../auth";
 import { Constants, HTTPMethod, jsonStringifyAndEscapeNonASCII, ResourceType } from "../common";
+import {
+  EMPTY_PARTITION_KEY_VALUE_HEADER,
+  UNDEFINED_PARTITION_KEY,
+  UNDEFINED_PARTITION_KEY_VALUE_HEADER
+} from "../common/partitionKeyConstants";
 import { CosmosHeaders } from "../queryExecutionContext";
 import { FeedOptions, MediaOptions, RequestOptions } from "./index";
 
@@ -32,6 +37,7 @@ export async function getHeaders(
   resourceId: string,
   resourceType: ResourceType,
   options: RequestOptions | FeedOptions | MediaOptions,
+  isSystemDefinedKey?: () => Promise<boolean>,
   partitionKeyRangeId?: string,
   useMultipleWriteLocations?: boolean
 ): Promise<CosmosHeaders> {
@@ -125,11 +131,17 @@ export async function getHeaders(
   }
 
   if (opts.partitionKey !== undefined) {
-    let partitionKey: string[] | string = opts.partitionKey;
-    if (partitionKey === null || !Array.isArray(partitionKey)) {
-      partitionKey = [partitionKey as string];
+    if (opts.partitionKey === UNDEFINED_PARTITION_KEY) {
+      headers[Constants.HttpHeaders.PartitionKey] = (await isSystemDefinedKey())
+        ? EMPTY_PARTITION_KEY_VALUE_HEADER
+        : UNDEFINED_PARTITION_KEY_VALUE_HEADER;
+    } else {
+      let partitionKey: string[] | string = opts.partitionKey;
+      if (partitionKey === null || !Array.isArray(partitionKey)) {
+        partitionKey = [partitionKey as string];
+      }
+      headers[Constants.HttpHeaders.PartitionKey] = jsonStringifyAndEscapeNonASCII(partitionKey);
     }
-    headers[Constants.HttpHeaders.PartitionKey] = jsonStringifyAndEscapeNonASCII(partitionKey);
   }
 
   if (authOptions.masterKey || authOptions.key || authOptions.tokenProvider) {

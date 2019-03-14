@@ -110,7 +110,12 @@ export class StoredProcedure {
    */
   public async execute<T>(params?: any[], options?: RequestOptions): Promise<ResourceResponse<T>>;
   public async execute<T>(params?: any[], options?: RequestOptions): Promise<ResourceResponse<T>> {
-    const response = await this.clientContext.execute<T>(this.url, params, options);
+    const response = await this.clientContext.execute<T>(
+      this.url,
+      params,
+      options,
+      async () => (await this.container.getPartitionKeyDefinition()).resource.systemKey
+    );
     return new ResourceResponse<T>(response.result, response.headers, response.statusCode);
   }
 }

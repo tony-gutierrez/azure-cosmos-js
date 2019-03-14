@@ -98,7 +98,7 @@ export async function bulkReadItems(container: Container, documents: any[], part
           : { partitionKey: {} };
 
       // TODO: should we block or do all requests in parallel?
-      const { resource: doc } = await container.item(document.id).read(options);
+      const { resource: doc } = await container.item(document.id, options.partitionKey).read(options);
 
       assert.equal(JSON.stringify(doc), JSON.stringify(document));
     } catch (err) {
@@ -107,11 +107,11 @@ export async function bulkReadItems(container: Container, documents: any[], part
   }
 }
 
-export async function bulkReplaceItems(container: Container, documents: any[]): Promise<any[]> {
+export async function bulkReplaceItems(container: Container, documents: any[], partitionKey: any): Promise<any[]> {
   const returnedDocuments: any[] = [];
   for (const document of documents) {
     try {
-      const { resource: doc } = await container.item(document.id).replace(document);
+      const { resource: doc } = await container.item(document.id, partitionKey).replace(document);
       const expectedModifiedDocument = JSON.parse(JSON.stringify(document));
       delete expectedModifiedDocument._etag;
       delete expectedModifiedDocument._ts;
@@ -139,7 +139,7 @@ export async function bulkDeleteItems(
           ? { partitionKey: document[partitionKeyPropertyName] }
           : { partitionKey: {} };
 
-      await container.item(document.id).delete(options);
+      await container.item(document.id, options.partitionKey).delete(options);
     } catch (err) {
       throw err;
     }
@@ -199,7 +199,7 @@ export async function replaceOrUpsertItem(
   if (isUpsertTest) {
     return container.items.upsert(body, options);
   } else {
-    return container.item(body.id).replace(body, options);
+    return container.item(body.id, options.partitionKey).replace(body, options);
   }
 }
 

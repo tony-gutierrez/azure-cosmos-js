@@ -2,6 +2,7 @@ import assert from "assert";
 import { RequestOptions } from "../..";
 import { Container, ContainerDefinition } from "../../client";
 import { sleep } from "../../common";
+import { UNDEFINED_PARTITION_KEY } from "../../common/partitionKeyConstants";
 import { getTestContainer, removeAllDatabases } from "../common/TestHelpers";
 
 describe("Change Feed Iterator", function() {
@@ -45,7 +46,7 @@ describe("Change Feed Iterator", function() {
         assert.equal(items[0].id, "item2", "should find the newest item, but not the old");
         const item = { id: "item2", name: "xyz" };
 
-        const { resource: replaced } = await container.item(item.id).replace(item);
+        const { resource: replaced } = await container.item(item.id, UNDEFINED_PARTITION_KEY).replace(item);
         assert.deepEqual(replaced.name, "xyz", "replaced item should be valid");
 
         // Should continue from last etag
@@ -89,7 +90,7 @@ describe("Change Feed Iterator", function() {
         const item = items[1];
         item.name = "xyz";
 
-        const { resource: replaced } = await container.item(item.id).replace(item);
+        const { resource: replaced } = await container.item(item.id, UNDEFINED_PARTITION_KEY).replace(item);
         assert.deepEqual(replaced.name, "xyz", "replaced item should be valid");
 
         // Should continue from last etag
@@ -137,7 +138,7 @@ describe("Change Feed Iterator", function() {
         const item = items[1];
         item.name = "xyz";
 
-        const { resource: replaced } = await container.item(item.id).replace(item);
+        const { resource: replaced } = await container.item(item.id, UNDEFINED_PARTITION_KEY).replace(item);
         assert.deepEqual(replaced.name, "xyz", "replaced item should be valid");
 
         // Should continue from last etag
@@ -259,7 +260,7 @@ describe("Change Feed Iterator", function() {
         const item = items[1];
         item.name = "xyz";
 
-        const { resource: replaced } = await container.item(item.id).replace(item);
+        const { resource: replaced } = await container.item(item.id, UNDEFINED_PARTITION_KEY).replace(item);
         assert.deepEqual(replaced.name, "xyz", "replaced item should be valid");
 
         const { result: itemsAfterUpdate } = await iterator.executeNext();

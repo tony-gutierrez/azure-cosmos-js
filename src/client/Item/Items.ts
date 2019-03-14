@@ -2,7 +2,7 @@ import { ChangeFeedIterator } from "../../ChangeFeedIterator";
 import { ChangeFeedOptions } from "../../ChangeFeedOptions";
 import { ClientContext } from "../../ClientContext";
 import { generateGuidId, getIdFromLink, getPathFromLink, isResourceValid, ResourceType } from "../../common";
-import { extractPartitionKey } from "../../extractPartitionKey";
+import { extractPartitionKey, throwPartitionKeyRequired } from "../../extractPartitionKey";
 import { FetchFunctionCallback, SqlQuerySpec } from "../../queryExecutionContext";
 import { QueryIterator } from "../../queryIterator";
 import { FeedOptions, RequestOptions } from "../../request";
@@ -73,7 +73,9 @@ export class Items {
         id,
         result => (result ? result.Documents : []),
         query,
-        innerOptions
+        innerOptions,
+        undefined,
+        async () => (await this.container.getPartitionKeyDefinition()).resource.systemKey
       );
     };
 
@@ -145,7 +147,10 @@ export class Items {
       partitionKey,
       async () => {
         const bodyWillBeTruthyIfPartitioned = (await this.container.getPartitionKeyDefinition()).resource;
-        return !!bodyWillBeTruthyIfPartitioned;
+        return {
+          isParittionedContainer: !!bodyWillBeTruthyIfPartitioned,
+          isSystemKey: bodyWillBeTruthyIfPartitioned.systemKey
+        };
       },
       changeFeedOptions
     );
@@ -204,9 +209,13 @@ export class Items {
    */
   public async create<T extends ItemDefinition>(body: T, options?: RequestOptions): Promise<ItemResponse<T>>;
   public async create<T extends ItemDefinition>(body: T, options: RequestOptions = {}): Promise<ItemResponse<T>> {
-    if (options.partitionKey === undefined && options.skipGetPartitionKeyDefinition !== true) {
+    if (options.partitionKey === undefined) {
       const { resource: partitionKeyDefinition } = await this.container.getPartitionKeyDefinition();
       options.partitionKey = extractPartitionKey(body, partitionKeyDefinition);
+    }
+
+    if (options.partitionKey === undefined) {
+      throwPartitionKeyRequired();
     }
 
     // Generate random document id if the id is missing in the payload and
@@ -223,14 +232,17 @@ export class Items {
     const path = getPathFromLink(this.container.url, ResourceType.item);
     const id = getIdFromLink(this.container.url);
 
-    const response = await this.clientContext.create<T>(body, path, ResourceType.item, id, undefined, options);
-
-    const ref = new Item(
-      this.container,
-      (response.result as any).id,
-      (options && options.partitionKey) as string,
-      this.clientContext
+    const response = await this.clientContext.create<T>(
+      body,
+      path,
+      ResourceType.item,
+      id,
+      undefined,
+      options,
+      async () => (await this.container.getPartitionKeyDefinition()).resource.systemKey
     );
+
+    const ref = new Item(this.container, response.result.id, options.partitionKey, this.clientContext);
     return new ItemResponse(response.result, response.headers, response.statusCode, ref);
   }
 
@@ -256,9 +268,13 @@ export class Items {
    */
   public async upsert<T extends ItemDefinition>(body: T, options?: RequestOptions): Promise<ItemResponse<T>>;
   public async upsert<T extends ItemDefinition>(body: T, options: RequestOptions = {}): Promise<ItemResponse<T>> {
-    if (options.partitionKey === undefined && options.skipGetPartitionKeyDefinition !== true) {
+    if (options.partitionKey === undefined) {
       const { resource: partitionKeyDefinition } = await this.container.getPartitionKeyDefinition();
       options.partitionKey = extractPartitionKey(body, partitionKeyDefinition);
+    }
+
+    if (options.partitionKey === undefined) {
+      throwPartitionKeyRequired();
     }
 
     // Generate random document id if the id is missing in the payload and
@@ -275,15 +291,17 @@ export class Items {
     const path = getPathFromLink(this.container.url, ResourceType.item);
     const id = getIdFromLink(this.container.url);
 
-    const response = (await this.clientContext.upsert<T>(body, path, ResourceType.item, id, undefined, options)) as T &
-      Resource;
+    const response = (await this.clientContext.upsert<T>(
+      body,
+      path,
+      ResourceType.item,
+      id,
+      undefined,
+      options,
+      async () => (await this.container.getPartitionKeyDefinition()).resource.systemKey
+    )) as T & Resource;
 
-    const ref = new Item(
-      this.container,
-      (response.result as any).id,
-      (options && options.partitionKey) as string,
-      this.clientContext
-    );
+    const ref = new Item(this.container, response.result.id, options.partitionKey, this.clientContext);
     return new ItemResponse(response.result, response.headers, response.statusCode, ref);
   }
 }

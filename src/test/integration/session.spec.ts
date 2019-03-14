@@ -2,6 +2,7 @@ import assert from "assert";
 import * as sinon from "sinon";
 import { ClientContext } from "../../ClientContext";
 import { OperationType, ResourceType, trimSlashes } from "../../common";
+import { UNDEFINED_PARTITION_KEY } from "../../common/partitionKeyConstants";
 import { ConsistencyLevel, PartitionKind } from "../../documents";
 import { Constants, CosmosClient, CosmosHeaders } from "../../index";
 import { RequestHandler } from "../../request";
@@ -196,7 +197,9 @@ describe("Session Token", function() {
       resourceType: ResourceType.item,
       resourceId: "1"
     });
-    await container.item(document13.id).replace({ id: "1", operation: "replace" }, { partitionKey: "1" });
+    await container
+      .item(document13.id, UNDEFINED_PARTITION_KEY)
+      .replace({ id: "1", operation: "replace" }, { partitionKey: "1" });
     assert.equal(
       putSpy.lastCall.args[3][Constants.HttpHeaders.SessionToken],
       replaceToken,
@@ -294,7 +297,7 @@ describe("Session Token", function() {
     });
     const applySessionTokenStub = sinon.stub(clientContext as any, "applySessionToken").callsFake(callbackSpy);
     try {
-      await container.item("1").read({ partitionKey: "1" });
+      await container.item("1", UNDEFINED_PARTITION_KEY).read({ partitionKey: "1" });
       assert.fail("readDocument must throw");
     } catch (err) {
       assert.equal(err.substatus, 1002, "Substatus should indicate the LSN didn't catchup.");
@@ -303,7 +306,7 @@ describe("Session Token", function() {
     } finally {
       applySessionTokenStub.restore();
     }
-    await container.item("1").read({ partitionKey: "1" });
+    await container.item("1", UNDEFINED_PARTITION_KEY).read({ partitionKey: "1" });
   });
 
   // TODO: chrande - looks like this might be broken by going name based?
@@ -351,12 +354,12 @@ describe("Session Token", function() {
     await client2
       .database(db.id)
       .container(createdContainerDef.id)
-      .item(createdDocument.id)
+      .item(createdDocument.id, UNDEFINED_PARTITION_KEY)
       .delete(requestOptions);
     const setSessionTokenSpy = sinon.spy(sessionContainer, "set");
 
     try {
-      await createdContainer.item(createdDocument.id).read(requestOptions);
+      await createdContainer.item(createdDocument.id, UNDEFINED_PARTITION_KEY).read(requestOptions);
       assert.fail("Must throw");
     } catch (err) {
       assert.equal(err.code, 404, "expecting 404 (Not found)");

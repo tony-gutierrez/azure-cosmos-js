@@ -1,6 +1,7 @@
 import assert from "assert";
 import { Container, CosmosClient, PermissionMode } from "../..";
 import { Database } from "../../client";
+import { UNDEFINED_PARTITION_KEY } from "../../common/partitionKeyConstants";
 import { endpoint } from "../common/_testConfig";
 import { getTestContainer, removeAllDatabases } from "../common/TestHelpers";
 
@@ -116,7 +117,7 @@ describe("Authorization", function() {
     const { resource: readDoc } = await clientReadPermission
       .database(database.id)
       .container(container.id)
-      .item(createdDoc.id)
+      .item(createdDoc.id, UNDEFINED_PARTITION_KEY)
       .read<any>();
     assert.equal(readDoc.id, createdDoc.id, "invalid document read");
   });

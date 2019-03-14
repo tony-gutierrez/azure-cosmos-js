@@ -1,4 +1,5 @@
 import assert from "assert";
+import { UNDEFINED_PARTITION_KEY } from "../../common/partitionKeyConstants";
 import { IndexingMode } from "../../documents";
 import { getTestDatabase, removeAllDatabases } from "../common/TestHelpers";
 
@@ -41,7 +42,9 @@ describe("Create And Read Validation", function() {
       assert.equal(doc.id, testDoc.id, "invalid document Id");
 
       // Read the container and see if it matches to the initial document
-      const { resource: resultDoc } = await container.item(doc.id).read<{ id: string; content: string }>();
+      const { resource: resultDoc } = await container
+        .item(doc.id, UNDEFINED_PARTITION_KEY)
+        .read<{ id: string; content: string }>();
       assert.equal(testDoc.content, resultDoc.content, "read document result is different from initial document");
     } catch (err) {
       throw err;

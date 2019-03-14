@@ -4,7 +4,7 @@ import { PartitionKey } from "../documents";
 export type CompareFunction = (x: Point, y: Point) => number;
 
 /** @hidden */
-export type Point = number | string;
+export type Point = number | string | {};
 
 /** @hidden */
 export class Range {

@@ -1,5 +1,6 @@
 import assert from "assert";
 import { Container, ContainerDefinition, Database } from "../../client";
+import { UNDEFINED_PARTITION_KEY } from "../../common/partitionKeyConstants";
 import { getTestDatabase, removeAllDatabases } from "../common/TestHelpers";
 
 async function sleep(time: number) {
@@ -80,7 +81,7 @@ describe("NodeJS CRUD Tests", function() {
 
     async function checkItemGone(container: Container, createdItem: any) {
       try {
-        await container.item(createdItem.id).read();
+        await container.item(createdItem.id, UNDEFINED_PARTITION_KEY).read();
         assert.fail("Must throw if the Item isn't there");
       } catch (err) {
         const badRequestErrorCode = 404;
@@ -89,7 +90,7 @@ describe("NodeJS CRUD Tests", function() {
     }
 
     async function checkItemExists(container: Container, createdItem: any) {
-      const { resource: readItem } = await container.item(createdItem.id).read();
+      const { resource: readItem } = await container.item(createdItem.id, UNDEFINED_PARTITION_KEY).read();
       assert.equal(readItem.ttl, createdItem.ttl);
     }
 
@@ -166,10 +167,10 @@ describe("NodeJS CRUD Tests", function() {
       await checkItemGone(container, createdItem3);
 
       // The Items with id doc1 and doc2 will never expire
-      const { resource: readItem1 } = await container.item(createdItem1.id).read();
+      const { resource: readItem1 } = await container.item(createdItem1.id, UNDEFINED_PARTITION_KEY).read();
       assert.equal(readItem1.id, createdItem1.id);
 
-      const { resource: readItem2 } = await container.item(createdItem2.id).read();
+      const { resource: readItem2 } = await container.item(createdItem2.id, UNDEFINED_PARTITION_KEY).read();
       assert.equal(readItem2.id, createdItem2.id);
     }
 
