@@ -6,6 +6,7 @@ import { GlobalEndpointManager } from "../globalEndpointManager";
 import { CosmosHeaders } from "../queryExecutionContext/CosmosHeaders";
 import { FeedOptions } from "./FeedOptions";
 import { LocationRouting } from "./LocationRouting";
+import { InternalOperationStats } from "./OperationStatistics";
 import { RequestOptions } from "./RequestOptions";
 
 export interface RequestContext {
@@ -25,4 +26,5 @@ export interface RequestContext {
   method: HTTPMethod;
   partitionKeyRangeId?: string;
   options: FeedOptions | RequestOptions;
+  operationStatistics: InternalOperationStats;
 }

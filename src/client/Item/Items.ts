@@ -6,6 +6,7 @@ import { extractPartitionKey } from "../../extractPartitionKey";
 import { FetchFunctionCallback, SqlQuerySpec } from "../../queryExecutionContext";
 import { QueryIterator } from "../../queryIterator";
 import { FeedOptions, RequestOptions } from "../../request";
+import { Response } from "../../request/Response";
 import { Container } from "../Container";
 import { Resource } from "../Resource";
 import { Item } from "./Item";
@@ -221,7 +222,7 @@ export class Items {
       (options && options.partitionKey) as string,
       this.clientContext
     );
-    return new ItemResponse(response.result, response.headers, response.statusCode, ref);
+    return new ItemResponse(response.result, response.headers, response.statusCode, ref, response.operationStatistics);
   }
 
   /**
@@ -265,7 +266,9 @@ export class Items {
     const path = getPathFromLink(this.container.url, ResourceType.item);
     const id = getIdFromLink(this.container.url);
 
-    const response = (await this.clientContext.upsert<T>(body, path, ResourceType.item, id, options)) as T & Resource;
+    const response = (await this.clientContext.upsert<T>(body, path, ResourceType.item, id, options)) as Response<
+      T & Resource
+    >;
 
     const ref = new Item(
       this.container,
@@ -273,6 +276,6 @@ export class Items {
       (options && options.partitionKey) as string,
       this.clientContext
     );
-    return new ItemResponse(response.result, response.headers, response.statusCode, ref);
+    return new ItemResponse(response.result, response.headers, response.statusCode, ref, response.operationStatistics);
   }
 }
